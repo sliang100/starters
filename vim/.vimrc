@@ -45,6 +45,7 @@ Plugin 'ervandew/supertab'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 Plugin 'wsdjeg/vim-fetch'
+Plugin 'vim-scripts/indentpython.vim'
 
 " All Vundle plugins must be declared before this line "
 call vundle#end()
@@ -64,6 +65,11 @@ let g:syntastic_javascript_eslint_exec = 'eslint_d'
 let g:syntastic_filetype_map = { "javascriptreact": "javascript" }
 
 let g:vim_jsx_pretty_highlight_close_tag = 1
+
+" Syntastic Python
+let g:syntastic_python_python_exec = 'python3'
+let g:syntastic_python_checkers=['flake8']
+
 
 " Autofix entire buffer with eslint_d:
 nnoremap <leader>f mF:%!eslint_d --stdin --fix-to-stdout<CR>`F
