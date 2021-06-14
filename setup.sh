@@ -8,7 +8,7 @@ command -v pip3 >/dev/null 2>&1 || { echo >&2 "$1 aborted, please install python
 sudo pip3 install git+git://github.com/powerline/powerline
 
 ### diff-highlight for git
-sudo pip3 isntall diff-highlight
+sudo pip3 install diff-highlight
 
 ### Vim setup
 # Vundle is a Vim bundle/plugin system, allows for quick and easy installation of new vim plugins
@@ -19,6 +19,7 @@ mkdir -p ~/.vim/
 cp -r ./vim/.vim/* ~/.vim/
 # Below installs all the vim plugins using Vundle
 vim +PluginInstall +qall
+
 
 mkdir -p ~/.ssh
 cp -r ./git/.gitconfig ~/
