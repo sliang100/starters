@@ -3,3 +3,4 @@ if [ -f ~/.bashrc ]; then
 fi
 
 export PS1="\[\033[38;5;33m\]\u\[$(tput sgr0)\]\[\033[38;5;33m\]@\[$(tput sgr0)\]\[\033[38;5;33m\]\h\[$(tput sgr0)\]\[\033[38;5;75m\]:\[$(tput sgr0)\]\[\033[38;5;147m\]\w\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]\[\033[38;5;75m\]\\$\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]"
+export PATH="$PATH:/Library/Frameworks/Python.framework/Versions/3.8/bin"
