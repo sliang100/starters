@@ -3,11 +3,11 @@ filetype plugin indent on
 set background=dark
 
 set nocompatible
-set softtabstop=2
-set tabstop=2
+set softtabstop=4
+set tabstop=4
 set backspace=indent,eol,start
 set expandtab
-set shiftwidth=2
+set shiftwidth=4
 set showmatch
 set mouse=a
 if has("mouse_sgr")
