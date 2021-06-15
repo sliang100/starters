@@ -23,6 +23,9 @@ vim +PluginInstall +qall
 
 mkdir -p ~/.ssh
 cp -r ./git/.gitconfig ~/
+cp -r ./git/.gitconfig-github ~/
+cp -r ./git/.gitconfig-work ~/
+
 cp -r ./tmux/.tmux.conf ~/
 cat ./bash/.bash_profile >> ~/.bash_profile
 
