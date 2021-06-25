@@ -6,7 +6,7 @@ This will configure a number of things on a fresh Linux system: vim, git, bash, 
 ## Setup
 
 ```
-git clone https://github.com/zxlin/starters.git
+git clone https://github.com/sliang100/starters.git
 ```
 
 Make sure you have `zsh` and `pip3` installed first, then inspect the settings to make sure you don't want to change anything.
