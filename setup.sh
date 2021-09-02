@@ -22,11 +22,11 @@ vim +PluginInstall +qall
 
 
 mkdir -p ~/.ssh
-cp -r ./git/.gitconfig ~/
-cp -r ./git/.gitconfig-github ~/
-cp -r ./git/.gitconfig-work ~/
+cp -R ./git/.gitconfig ~/
+cp -R ./git/.gitconfig-github ~/
+cp -R ./git/.gitconfig-work ~/
 
-cp -r ./tmux/.tmux.conf ~/
+cp -R ./tmux/.tmux.conf ~/
 cat ./bash/.bash_profile >> ~/.bash_profile
 
 # Oh My Zsh is a zsh theming library

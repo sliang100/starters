@@ -26,13 +26,11 @@
     "profiles": {
         "defaults": {
             // Put settings here that you want to apply to all profiles.
-            "colorScheme": "Solarized Dark",
-            "fontSize": 8,
+            "colorScheme": "One Half Dark",
+            "fontSize": 10,
             "fontFace": "Cascadia Mono PL",
-            "background": "#000c10",
             "useAcrylic": true,
-            "acrylicOpacity": 0.8,
-            "cursorShape": "filledBox"
+            "acrylicOpacity": 0.8
         },
         "list": [
             {
