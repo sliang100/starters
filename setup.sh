@@ -5,7 +5,7 @@ command -v zsh >/dev/null 2>&1 || { echo >&2 "$1 aborted, please install zsh fir
 command -v pip3 >/dev/null 2>&1 || { echo >&2 "$1 aborted, please install python3-pip first"; exit 1; }
 
 ### Powerline - fancy status bar
-sudo pip3 install git+git://github.com/powerline/powerline
+sudo apt install --yes powerline
 
 ### diff-highlight for git
 sudo pip3 install diff-highlight
@@ -31,5 +31,9 @@ cat ./bash/.bash_profile >> ~/.bash_profile
 
 # Oh My Zsh is a zsh theming library
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-cp ./zsh/.zshrc ~/.zshrc
 wget https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm/master/honukai.zsh-theme -O ~/.oh-my-zsh/themes/honukai.zsh-theme
+cp ./zsh/.zshrc ~/.zshrc
+sed -i 's/robbyrussell/honukai/g' ~/.zshrc
+zsh
+source ~/.zshrc
+chsh -s $(which zsh)
