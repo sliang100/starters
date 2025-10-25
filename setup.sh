@@ -5,7 +5,7 @@ command -v zsh >/dev/null 2>&1 || { echo >&2 "$1 aborted, please install zsh fir
 command -v pip3 >/dev/null 2>&1 || { echo >&2 "$1 aborted, please install python3-pip first"; exit 1; }
 
 ### Powerline - fancy status bar
-sudo apt install --yes powerline
+sudo pip3 install --user powerline-status
 
 ### diff-highlight for git
 sudo pip3 install diff-highlight
@@ -23,8 +23,6 @@ vim +PluginInstall +qall
 
 mkdir -p ~/.ssh
 cp -R ./git/.gitconfig ~/
-cp -R ./git/.gitconfig-github ~/
-cp -R ./git/.gitconfig-work ~/
 
 cp -R ./tmux/.tmux.conf ~/
 cat ./bash/.bash_profile >> ~/.bash_profile
@@ -37,3 +35,6 @@ sed -i 's/robbyrussell/honukai/g' ~/.zshrc
 zsh
 source ~/.zshrc
 chsh -s $(which zsh)
+
+# aliases set up
+cp ./aliases/.aliases ~/
