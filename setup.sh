@@ -1,8 +1,11 @@
 #!/bin/bash
 
-### check for zsh & pip existence
-command -v zsh >/dev/null 2>&1 || { echo >&2 "$1 aborted, please install zsh first"; exit 1; }
-command -v pip3 >/dev/null 2>&1 || { echo >&2 "$1 aborted, please install python3-pip first"; exit 1; }
+### check for zsh & pip
+sudo apt update
+sudo apt install -y \
+  zsh \
+  git-delta \
+  powerline
 
 ### Powerline - fancy status bar
 sudo pip3 install --user powerline-status
@@ -27,14 +30,17 @@ cp -R ./git/.gitconfig ~/
 cp -R ./tmux/.tmux.conf ~/
 cat ./bash/.bash_profile >> ~/.bash_profile
 
-# Oh My Zsh is a zsh theming library
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-wget https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm/master/honukai.zsh-theme -O ~/.oh-my-zsh/themes/honukai.zsh-theme
-cp ./zsh/.zshrc ~/.zshrc
-sed -i 's/robbyrussell/honukai/g' ~/.zshrc
-zsh
-source ~/.zshrc
-chsh -s $(which zsh)
-
 # aliases set up
 cp ./aliases/.aliases ~/
+
+# Oh My Zsh is a zsh theming library
+RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+wget 'https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm/master/honukai.zsh-theme' -O ~/.oh-my-zsh/themes/honukai.zsh-theme
+cp ./zsh/.zshrc ~/.zshrc
+sed -i 's/robbyrussell/honukai/g' ~/.zshrc
+chsh -s $(which zsh)
+
+# switch to zsh if installed correctly
+if [ -t 0 ] && command -v zsh >/dev/null 2>&1; then
+    exec zsh
+fi
