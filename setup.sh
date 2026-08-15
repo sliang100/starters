@@ -27,25 +27,59 @@ ensure_starters_directory(){
 install_sys_packages() {
   log_info "Installing system packages..."
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    sudo apt update
-    sudo apt install -y \
+    # force non-interactive for updating
+    sudo apt-get update -o Dpkg::Use-Pty=0
+    sudo apt-get install -y -o Dpkg::Use-Pty=0 \
       zsh \
       git-delta \
+      python3 \
+      python-is-python3 \
       python3-pip \
+      python3-venv \
       powerline \
       fonts-powerline \
       wget \
       curl \
-      git
+      git \
+      rsync \
+      xclip
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     brew update
     brew install \
+      pyenv \
+      python \
+      uv \
+      pipx \
       zsh \
       git-delta \
       powerline-go \
       wget \
       curl
     brew install --cask font-hack-nerd-font || true #in case there are any errors
+  fi
+}
+
+setup_timezone() {
+  log_info "Determining and setting system timezone via public IP..."
+  local timezone
+  timezone="$(curl -fsSL --max-time 5 https://ipapi.co/timezone 2>/dev/null || true)"
+
+  if [[ -z "$timezone" ]]; then
+    log_error "Could not auto-determine timezone via IP, skipping.."
+    return 0;
+  fi
+
+  log_info "Timezone: ${timezone}"
+
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # prevents errors on minimal Linux installations (i.e. docker and WSL)
+    if command -v timedatectl >/dev/null 2>&1; then
+      sudo timedatectl set-timezone "$timezone" 2>/dev/null || log_error "Failed to update timezone via timedatectl"
+    else
+      log_error "timedatectl not found, skipping Linux timezone update"
+    fi
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    sudo systemsetup -settimezone "$timezone" >/dev/null 2>&1 || true
   fi
 }
 
@@ -59,8 +93,8 @@ setup_vim() {
   fi
 
   # Modify your vimrc as necessary to remove any plugins or add any plugins
-  cp ./vim/.vimrc ~/
-  cp -r ./vim/.vim/. ~/.vim/
+  rsync -a ./vim/.vimrc ~/.vimrc
+  rsync -a ./vim/.vim/ ~/.vim/
   # headless vim plugin installation
   vim -es -u ~/.vimrc +PluginInstall +qall < /dev/null || true
 }
@@ -93,24 +127,40 @@ setup_touch_id() {
   fi
 }
 
+idempotent_copy() {
+  if [[ "$#" -ne 2 ]]; then
+    log_error "Incorrect num arguments for idempotent_copy helper function"
+    log_info "Usage: idempotent_copy [source path] [destination path]"
+    return 1
+  fi
+
+  local source_path="$1"
+  local source_file="$(basename "$source_path")"
+  local destination_path="$2"
+  local custom_marker="# --- CUSTOM ${source_file} SECTION ---"
+
+  # make sure destination path exists
+  mkdir -p "$(dirname "$destination_path")"
+  touch "$destination_path"
+
+  if ! grep -qF "$custom_marker" "$destination_path" 2>/dev/null; then    # macOS needs file already present; linux doesn't care
+    printf "\n%s\n" "$custom_marker" >> "$destination_path"
+    cat "$source_path" >> "$destination_path"
+  else
+    log_info "Custom ${source_file} settings already present, skipping."
+  fi
+}
+
 copy_dotfiles() {
   log_info "Copying dotfiles (.gitconfig, .tmux.config, .bash_profile, .aliases, )..."
 
   mkdir -p ~/.ssh
-  cp -R ./git/. ~/
-  cp -R ./tmux/. ~/
-  cp ./aliases/.aliases ~/
+  rsync -a ./tmux/ ~/
 
-  local custom_marker="# --- CUSTOM .bash_profile SECTION ---"
+  idempotent_copy ./git/.gitconfig ~/.gitconfig
+  idempotent_copy ./bash/.bash_profile ~/.bash_profile
+  idempotent_copy ./aliases/.aliases ~/.aliases
 
-  if ! grep -qF "$custom_marker" ~/.bash_profile 2>/dev/null; then    # macOS needs file already present; linux doesn't care
-    touch ~/.bash_profile
-
-    printf "\n%s\n" "$custom_marker" >> ~/.bash_profile
-    cat ./bash/.bash_profile >> ~/.bash_profile
-  else
-    log_info "Custom .bash_profile settings already present, skipping."
-  fi
 }
 
 setup_zsh() {
@@ -125,13 +175,8 @@ setup_zsh() {
   curl -fsSL 'https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm-zsh/master/honukai.zsh-theme' \
     -o ~/.oh-my-zsh/custom/themes/honukai.zsh-theme
 
-  cp ./zsh/.zshrc ~/.zshrc
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' 's/^ZSH_THEME=.*/ZSH_THEME="honukai"/' ~/.zshrc || true
-    #macOS requires empty string arg
-  else
-    sed -i 's/^ZSH_THEME=.*/ZSH_THEME="honukai"/' ~/.zshrc || true
-  fi
+  rsync -a ./zsh/.zshrc ~/.zshrc
+  perl -pi -e 's/^ZSH_THEME=.*/ZSH_THEME="honukai"/' ~/.zshrc
 }
 
 set_default_shell_to_zsh() {
@@ -150,22 +195,28 @@ set_default_shell_to_zsh() {
       log_info "Non-interactive shell, skipping chsh password prompt..."
     fi
   fi
-
-  # switch to zsh if installed correctly
-  if [[ -t 0 ]] && [[ -n "$zsh_path" ]]; then
-    # -l flag to ensure profile environment variables are loaded
-    exec "$zsh_path" -l
-  fi
 }
 
 main() {
   ensure_starters_directory
   install_sys_packages
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    setup_timezone
+  fi
   setup_vim
   setup_touch_id
   copy_dotfiles
   setup_zsh
   set_default_shell_to_zsh
+
+  # switch to zsh if installed correctly
+  local zsh_path
+  zsh_path="$(command -v zsh || true)"
+
+  if [[ -t 0 ]] && [[ -n "$zsh_path" ]]; then
+    # -l flag to ensure profile environment variables are loaded
+    exec "$zsh_path" -l
+  fi
 }
 
 main "$@"
