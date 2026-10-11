@@ -1,4 +1,4 @@
 alias pip=pip3
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
-
+alias gcc='gcc -std=c99 -Wvla -Werror=vla -Wall -g -O0 -Wwrite-strings -Wshadow -pedantic-errors -fstack-protector-all -Wextra'
