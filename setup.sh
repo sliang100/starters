@@ -28,33 +28,35 @@ install_sys_packages() {
   log_info "Installing system packages..."
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # force non-interactive for updating
+    sudo add-apt-repository -y ppa:neovim-ppa/stable
     sudo apt-get update -o Dpkg::Use-Pty=0
     sudo apt-get install -y -o Dpkg::Use-Pty=0 \
       zsh \
+      neovim \
       git-delta \
       python3 \
       python-is-python3 \
-      python3-pip \
-      python3-venv \
-      powerline \
       fonts-powerline \
+      powerline-go \
       wget \
       curl \
       git \
       rsync \
       xclip
+    # uv is significantly faster than other other python package managers
+    curl -LsSf https://astral.sh/uv/install.sh | sh 
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     brew update
     brew install \
-      pyenv \
-      python \
-      uv \
-      pipx \
       zsh \
+      neovim \
+      uv \
       git-delta \
       powerline-go \
       wget \
-      curl
+      curl \
+      git \
+      rsync
     brew install --cask font-hack-nerd-font || true #in case there are any errors
   fi
 }
@@ -84,19 +86,26 @@ setup_timezone() {
 }
 
 setup_vim() {
-  log_info "Setting up .vimrc and vim plugins..."
+  log_info "Setting up .vimrc, vim plugins, and nvim/init.vim ..."
   
-  # Vundle is a Vim bundle/plugin system, allows for quick and easy installation of new vim plugins
-  mkdir -p ~/.vim/bundle
-  if [[ ! -d ~/.vim/bundle/Vundle.vim ]]; then
-    git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+  # vim-plug is a minimalist Vim plugin manager
+  mkdir -p ~/.vim/autoload
+  
+  if [[ ! -f ~/.vim/autoload/plug.vim ]]; then
+    curl -fsSLo ~/.vim/autoload/plug.vim \
+      https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
   fi
 
   # Modify your vimrc as necessary to remove any plugins or add any plugins
   rsync -a ./vim/.vimrc ~/.vimrc
   rsync -a ./vim/.vim/ ~/.vim/
-  # headless vim plugin installation
-  vim -es -u ~/.vimrc +PluginInstall +qall < /dev/null || true
+  
+  # set up neovim
+  mkdir -p ~/.config/nvim
+  rsync -a ./vim/init.vim ~/.config/nvim/init.vim
+  
+  # headless neo vim plugin installation
+  nvim --headless -u ~/.config/nvim/init.vim +PlugInstall +qall
 }
 
 setup_touch_id() {
@@ -146,8 +155,9 @@ idempotent_copy() {
   if ! grep -qF "$custom_marker" "$destination_path" 2>/dev/null; then    # macOS needs file already present; linux doesn't care
     printf "\n%s\n" "$custom_marker" >> "$destination_path"
     cat "$source_path" >> "$destination_path"
+    log_info "[Success] Copying ${source_file} into ${destination_path}"
   else
-    log_info "Custom ${source_file} settings already present, skipping."
+    log_info "Custom ${source_file} settings already present, skipping..."
   fi
 }
 
@@ -163,6 +173,23 @@ copy_dotfiles() {
 
 }
 
+setup_tmux() {
+    local tmux_powerline_location="/usr/share"
+    local placeholder='\$POWERLINE_LOCATION'
+
+    if [[ ! -f "$HOME/.tmux.conf" ]]; then
+        log_error "Could not find ~/.tmux.conf"
+        return 1
+    fi
+    
+    # using | instead of / so we don't need to escape as many chars
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s|$placeholder|$tmux_powerline_location|g" "$HOME/.tmux.conf"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        sed -i "s|$placeholder|$tmux_powerline_location|g" "$HOME/.tmux.conf"
+    fi
+}
+
 setup_zsh() {
   # Oh My Zsh is a zsh theming library
   if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
@@ -172,8 +199,8 @@ setup_zsh() {
 
   # install honukai theme
   mkdir -p ~/.oh-my-zsh/custom/themes
-  curl -fsSL 'https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm-zsh/master/honukai.zsh-theme' \
-    -o ~/.oh-my-zsh/custom/themes/honukai.zsh-theme
+  curl -fsSLo ~/.oh-my-zsh/custom/themes/honukai.zsh-theme \
+    'https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm-zsh/master/honukai.zsh-theme'
 
   rsync -a ./zsh/.zshrc ~/.zshrc
   perl -pi -e 's/^ZSH_THEME=.*/ZSH_THEME="honukai"/' ~/.zshrc
@@ -206,6 +233,7 @@ main() {
   setup_vim
   setup_touch_id
   copy_dotfiles
+  setup_tmux
   setup_zsh
   set_default_shell_to_zsh
 

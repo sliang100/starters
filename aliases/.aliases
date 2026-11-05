@@ -1,4 +1,15 @@
-alias pip=pip3
-alias pbcopy='xclip -selection clipboard'
-alias pbpaste='xclip -selection clipboard -o'
+# universal aliases
+alias pip='uv pip'
+alias python='uv run python'
 alias gcc='gcc -std=c99 -Wvla -Werror=vla -Wall -g -O0 -Wwrite-strings -Wshadow -pedantic-errors -fstack-protector-all -Wextra'
+alias vim='nvim'
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # aliases for linux to mimic macOS
+    alias pbcopy='xclip -selection clipboard'
+    alias pbpaste='xclip -selection clipboard -o'
+elif [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* ]]; then
+    # aliases for windows
+    alias pbcopy='cat > /dev/clipboard'
+    alias pbpaste='cat /dev/clipboard'
+fi
